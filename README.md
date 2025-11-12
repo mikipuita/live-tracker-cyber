@@ -1,70 +1,75 @@
-# live-tracker-cyber
+## live-tracker-cyber
 
-## Overview
-live-tracker-cyber is a small full-stack prototype for a real-time cyber threat monitoring dashboard. The goal is to visualize “live” security events on a dashboard; for now, the app uses a FastAPI backend to generate mock threat data and stream it to a Next.js/React frontend via WebSocket.
+Overview:
+A real-time cyber threat monitoring dashboard prototype built with FastAPI and Next.js/React. The system visualizes simulated security events to test a live-streaming pipeline and UI before connecting to real threat data.
 
-- What it does (today):
-  - Backend (FastAPI) emits mock threats (type, source_ip, severity, confidence) every 1–3 seconds over ws://…/ws/threats and exposes a simple health check at GET /.
-  - Frontend (Next.js/React) connects to the WebSocket and renders a live feed with basic stats.
-- Why mock data:
-  - This lets the UI and streaming pipeline be developed and tested before connecting to real data sources.
-- Planned next steps:
-  - Replace mocks with live integrations (e.g., Splunk, SIEMs, IDS/IPS, threat intel APIs).
-  - Normalize and enrich events, add filtering/aggregation, counters, and historical views.
-  - Add authentication/authorization and deployment hardening.
+## Current Functionality
 
-## How to Run (Frontend + Backend)
+Backend (FastAPI)
 
-Prerequisites
-- Windows
-- Python 3.10+ (check: `python --version`)
-- Node.js 18+ or 20+ (check: `node --version`)
+Emits mock “threat” events every 1–3 seconds over WebSocket (ws://localhost:9000/ws/threats).
 
-Notes
-- Backend runs on port 9000
-- Frontend runs on port 3000.
-- Backend streams mock threats every 1–3s via WebSocket.
+Each event includes: type, source_ip, severity, and confidence.
 
-### 1 Backend (FastAPI)
+Provides a simple health check endpoint at GET /.
 
-From: `my-project\backend`
+Frontend (Next.js/React)
 
-#### Create & activate venv
+Connects to the WebSocket stream.
+
+Displays a live feed of threat events and basic statistics in real time.
+
+## Why Mock Data?
+
+The mock data enables development and testing of:
+
+WebSocket streaming
+
+Frontend rendering pipeline
+
+Live updating and visualization logic
+before connecting to real-world data from sources like Splunk, SIEMs, or threat intelligence APIs.
+
+## Planned Next Steps
+
+Replace mock data with live integrations (Splunk, IDS/IPS, etc.)
+
+Add filtering, aggregation, and normalization layers
+
+Implement event counters, dashboards, and historical logs
+
+Add authentication/authorization
+
+Harden for production deployment
+
+## How to Run Locally
+# Backend (FastAPI)
+
+From my-project/backend:
+
+## Create & activate virtual environment
 python -m venv .venv
-.\.venv\Scripts\Activate
+.venv\Scripts\Activate
 
-#### Install deps
+## Install dependencies
 python -m pip install fastapi "uvicorn[standard]"
 
-#### Run
+## Run the server
 uvicorn main:app --reload --port 9000
-```
 
-Verify:
-- Open http://localhost:9000 → should show a JSON status.
-- WebSocket endpoint: ws://localhost:9000/ws/threats
 
-```
-### 2 Frontend (Next.js/React)
+## Verify:
+* Open http://localhost:9000
+*  → should show JSON status
+
+WebSocket endpoint: ws://localhost:9000/ws/threats
+
+# Frontend (Next.js / React)
+
+From my-project/frontend:
 
 npm install
+
 npm run dev
 
-
-Open: http://localhost:3000
-
-### 3 Production
-
-Frontend:
-```terminal
-cd my-project/frontend
-npm run build
-npm start
-```
-
-Backend:
-```terminal
-cd my-project\backend
-.\.venv\Scripts\Activate
-uvicorn main:app --host 0.0.0.0 --port 9000
-```
+Open http://localhost:3000
