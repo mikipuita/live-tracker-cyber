@@ -42,34 +42,66 @@ Add authentication/authorization
 
 Harden for production deployment
 
-## How to Run Locally
-# Backend (FastAPI)
+# 1. Prerequisites
 
-From my-project/backend:
+Make sure these are installed: (In Terminal)
 
-## Create & activate virtual environment
+* Python 3.10+ → check with:
+
+python --version
+
+* Node.js 18+ or 20+ → check with:
+
+node --version
+
+# 2. Start the Backend (FastAPI)
+Go to backend folder
+* In your terminal or PowerShell:
+
+cd my-project\backend
+
+* Create and activate virtual environment
 python -m venv .venv
-.venv\Scripts\Activate
+.\.venv\Scripts\activate
 
-## Install dependencies
+* Install dependencies
+
 python -m pip install fastapi "uvicorn[standard]"
 
-## Run the server
+* Run the FastAPI app
+
 uvicorn main:app --reload --port 9000
 
+* Check it’s working:
 
-## Verify:
-* Open http://localhost:9000
-*  → should show JSON status
+Open your browser → http://localhost:9000
 
-WebSocket endpoint: ws://localhost:9000/ws/threats
+* You should see something like:
 
-# Frontend (Next.js / React)
+-> {"status": "ok"}
 
-From my-project/frontend:
+
+* WebSocket endpoint → ws://localhost:9000/ws/threats (used by frontend)
+
+# 3. Start the Frontend (Next.js / React)
+* Open a new terminal window
+-> Keep the backend running.
+  
+* Now in a new terminal, navigate to your frontend:
+
+cd my-project\frontend
+
+* Install frontend dependencies
 
 npm install
 
+* Start the Next.js development server
+
 npm run dev
 
+
+* Check it’s running:
+
 Open http://localhost:3000
+
+-> You should see the live cyber threat dashboard updating every few seconds with mock data.
