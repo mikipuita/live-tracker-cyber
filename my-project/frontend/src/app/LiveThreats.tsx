@@ -8,6 +8,10 @@ type Threat ={
   source_ip: string;
   severity: string;
   confidence: number; 
+  location: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export default function LiveThreats() {
@@ -37,6 +41,9 @@ export default function LiveThreats() {
         {threats.map((threat, idx) => (
           <li key={idx} className="py-1">
             <span className="text-yellow-300">{threat.type}</span> from {threat.source_ip} [{threat.severity}]
+            <span className="text-gray-400 ml-2">
+              @ ({threat.location.latitude}, {threat.location.longitude})
+            </span>
           </li>
         ))}
       </ul>

@@ -4,7 +4,7 @@
 live-tracker-cyber is a small full-stack prototype for a real-time cyber threat monitoring dashboard. The goal is to visualize “live” security events on a dashboard; for now, the app uses a FastAPI backend to generate mock threat data and stream it to a Next.js/React frontend via WebSocket.
 
 - What it does (today):
-  - Backend (FastAPI) emits mock threats (type, source_ip, severity, confidence) every 1–3 seconds over ws://…/ws/threats and exposes a simple health check at GET /.
+  - Backend (FastAPI) emits mock threats (type, source_ip, severity, confidence, location) every 1–3 seconds over ws://…/ws/threats and exposes a simple health check at GET /.
   - Frontend (Next.js/React) connects to the WebSocket and renders a live feed with basic stats.
 - Why mock data:
   - This lets the UI and streaming pipeline be developed and tested before connecting to real data sources.
@@ -29,7 +29,7 @@ Notes
 
 From: `my-project\backend`
 
-# Create & activate venv
+#### Create & activate venv
 python -m venv .venv
 .\.venv\Scripts\Activate
 

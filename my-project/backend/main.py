@@ -24,7 +24,11 @@ def generate_mock_threat():
         "type": random.choice(threat_types),
         "source_ip": f"10.{random.randint(0,255)}.{random.randint(0,255)}.1",
         "severity": random.choice(["Low", "Medium", "High"]),
-        "confidence": round(random.uniform(0.5, 0.99), 2)
+        "confidence": round(random.uniform(0.5, 0.99), 2),
+        "location": {
+            "latitude": round(random.uniform(-90, 90), 4),
+            "longitude": round(random.uniform(-180, 180), 4)
+        }
     }
 
 #WebSocket Endpoint
