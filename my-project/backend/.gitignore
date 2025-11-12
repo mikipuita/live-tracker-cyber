@@ -1,0 +1,6 @@
+.env
+.env.locL
+*.key
+*.crt
+.vscode/
+__pycache__/
