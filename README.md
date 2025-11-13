@@ -1,109 +1,147 @@
-PROJECT IS UNDER CONSTRUCTION. Current README reflects mock data for testing. Working on adding real-time data from NVD and AbuseIPDB API.
+# Real-Time Cyber Threat Intelligence Dashboard
 
-## live-tracker-cyber
+A real-time cybersecurity threat intelligence platform that aggregates and visualizes live threat data from authoritative security databases. The system streams threat intelligence to an interactive dashboard, providing insights into emerging vulnerabilities and active malicious actors.
 
-Overview:
-A real-time cyber threat monitoring dashboard prototype built with FastAPI and Next.js/React. The system visualizes simulated security events to test a live-streaming pipeline and UI before connecting to real threat data.
+## Features
 
-## Current Functionality
+- Real-time threat feed via WebSocket streaming
+- CVE tracking from NVD (National Vulnerability Database)
+- Malicious IP monitoring from AbuseIPDB (100+ active threats)
+- MITRE ATT&CK framework categorization (23 attack types)
+- Geolocation mapping with country-based coordinates
+- Severity-based alerting (Low, Medium, High, Critical)
 
-Backend (FastAPI)
+## Tech Stack
 
-Emits mock “threat” events every 1–3 seconds over WebSocket (ws://localhost:9000/ws/threats).
+**Backend:** Python, FastAPI, WebSocket, httpx, python-dotenv
 
-Each event includes: type, source_ip, severity, and confidence.
+**Frontend:** Next.js, React, TypeScript, Tailwind CSS
 
-Provides a simple health check endpoint at GET /.
+**Data Sources:** NVD API, AbuseIPDB API
 
-Frontend (Next.js/React)
+## Prerequisites
 
-Connects to the WebSocket stream.
+- Python 3.8+
+- Node.js 16+
+- AbuseIPDB API key (free tier available)
+- NVD API key (optional, for increased rate limits)
 
-Displays a live feed of threat events and basic statistics in real time.
+## Setup Instructions
 
-## Why Mock Data?
+### Backend Setup
 
-The mock data enables development and testing of:
+1. Navigate to backend directory and create virtual environment:
 
-WebSocket streaming
+```bash
+cd backend
+python -m venv venv
 
-Frontend rendering pipeline
+# Activate virtual environment
+# Linux/Mac:
+source venv/bin/activate
+# Windows:
+venv\Scripts\activate
+```
 
-Live updating and visualization logic
-before connecting to real-world data from sources like Splunk, SIEMs, or threat intelligence APIs.
+2. Install dependencies:
 
-## Planned Next Steps
+```bash
+pip install fastapi uvicorn python-dotenv httpx
+```
 
-Replace mock data with live integrations (Splunk, IDS/IPS, etc.)
+3. Create `.env` file in backend directory:
 
-Add filtering, aggregation, and normalization layers
+```env
+ABUSEIPDB_API_KEY=your_abuseipdb_api_key_here
+NVD_API_KEY=your_nvd_api_key_here_optional
+```
 
-Implement event counters, dashboards, and historical logs
+**API Keys:**
+- AbuseIPDB (Required): https://www.abuseipdb.com/register
+- NVD (Optional): https://nvd.nist.gov/developers/request-an-api-key
 
-Add authentication/authorization
+4. Run the server:
 
-Harden for production deployment
+```bash
+python main.py
+```
 
-# 1. Prerequisites
+Backend starts on `http://localhost:9000`
 
-Make sure these are installed: (In Terminal)
+### Frontend Setup
 
-* Python 3.10+ → check with:
+1. In a new terminal, navigate to frontend directory:
 
-python --version
-
-* Node.js 18+ or 20+ → check with:
-
-node --version
-
-# 2. Start the Backend (FastAPI)
-Go to backend folder
-* In your terminal or PowerShell:
-
-cd my-project\backend
-
-* Create and activate virtual environment
-python -m venv .venv
-.\.venv\Scripts\activate
-
-* Install dependencies
-
-python -m pip install fastapi "uvicorn[standard]"
-
-* Run the FastAPI app
-
-uvicorn main:app --reload --port 9000
-
-* Check it’s working:
-
-Open your browser → http://localhost:9000
-
-* You should see something like:
-
--> {"status": "ok"}
-
-
-* WebSocket endpoint → ws://localhost:9000/ws/threats (used by frontend)
-
-# 3. Start the Frontend (Next.js / React)
-* Open a new terminal window
--> Keep the backend running.
-  
-* Now in a new terminal, navigate to your frontend:
-
-cd my-project\frontend
-
-* Install frontend dependencies
-
+```bash
+cd frontend
 npm install
+```
 
-* Start the Next.js development server
+2. Run development server:
 
+```bash
 npm run dev
+```
 
+Or for production:
 
-* Check it’s running:
+```bash
+npm run build
+npm start
+```
 
-Open http://localhost:3000
+Frontend starts on `http://localhost:3000`
 
--> You should see the live cyber threat dashboard updating every few seconds with mock data.
+## How It Works
+
+The backend fetches real CVE data from NVD and malicious IPs from AbuseIPDB on startup. It then generates realistic threat scenarios by combining both data sources:
+
+- **CVE-based threats**: Real vulnerabilities paired with real malicious IPs
+- **IP-based threats**: Malicious IPs with their actual reported attack patterns
+
+Threats stream via WebSocket every 2-5 seconds to the frontend dashboard, where they're displayed with severity color-coding and geographic information.
+
+Data refreshes automatically: CVEs every 30 minutes, IPs every 4 hours.
+
+## API Endpoints
+
+- `ws://localhost:9000/ws/threats` - Real-time threat feed (WebSocket)
+- `GET /` - Health check and status
+- `GET /api/cves` - View cached CVE data
+- `GET /api/malicious-ips` - View cached malicious IPs
+
+## Future Development
+
+**Upcoming Features:**
+- Data visualizations and analytics dashboard (in development by collaborator)
+- Threat filtering by severity and type
+- Historical threat analytics
+- Export functionality
+
+## Troubleshooting
+
+**Malicious IPs not loading:**
+- Verify `ABUSEIPDB_API_KEY` is correctly set in `.env` within the backend directory
+- Check terminal for error messages
+
+**WebSocket connection failed:**
+- Ensure backend is running on port 9000
+- Check browser console for CORS errors
+
+## Acknowledgments
+
+Data sources powered by:
+- NVD (National Vulnerability Database)
+- AbuseIPDB Community
+- MITRE ATT&CK Framework
+
+**Disclaimer**: This is an educational project demonstrating threat intelligence aggregation. Data represents real vulnerabilities and reported malicious IPs but should not be used as the sole source for production security decisions.
+
+## License
+
+Not yet...
+
+## Authors
+
+Miguel Sanchez - Backend & Real-time Threat Intelligence
+Rishi Alva - Data Visualizations & Analytics
