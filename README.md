@@ -144,4 +144,5 @@ Not yet...
 ## Authors
 
 Miguel Sanchez - Backend & Real-time Threat Intelligence
+
 Rishi Alva - Data Visualizations & Analytics
