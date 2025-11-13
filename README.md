@@ -1,3 +1,5 @@
+PROJECT IS UNDER CONSTRUCTION. Current README reflects mock data for testing. Working on adding real-time data from NVD and AbuseIPDB API.
+
 ## live-tracker-cyber
 
 Overview:
