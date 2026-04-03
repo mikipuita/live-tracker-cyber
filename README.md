@@ -1,148 +1,172 @@
 # Real-Time Cyber Threat Intelligence Dashboard
 
-A real-time cybersecurity threat intelligence platform that aggregates and visualizes live threat data from authoritative security databases. The system streams threat intelligence to an interactive dashboard, providing insights into emerging vulnerabilities and active malicious actors.
+A real-time cybersecurity threat intelligence platform that aggregates and visualizes live threat data from authoritative security databases. The system streams threat intelligence to an interactive dashboard with charts and a live feed.
 
 ## Features
 
 - Real-time threat feed via WebSocket streaming
 - CVE tracking from NVD (National Vulnerability Database)
-- Malicious IP monitoring from AbuseIPDB (100+ active threats)
-- MITRE ATT&CK framework categorization (23 attack types)
-- Geolocation mapping with country-based coordinates
-- Severity-based alerting (Low, Medium, High, Critical)
+- Malicious IP monitoring from AbuseIPDB (when API key is configured)
+- Severity-based views (Low, Medium, High, Critical) and threat-type charts (Chart.js)
+- Geolocation hints with country-based coordinates in generated scenarios
+- Interactive dashboard: live list plus **Threat Visualizations** (pie and bar charts)
 
-## Tech Stack
+## Repository layout
 
-**Backend:** Python, FastAPI, WebSocket, httpx, python-dotenv
+```
+live-tracker-cyber/
+├── README.md                 # This file
+└── my-project/
+    ├── start-local.sh        # One command: API + dashboard (dev)
+    ├── backend/              # FastAPI + WebSocket (Python)
+    │   ├── main.py
+    │   ├── requirements.txt
+    │   └── .env.example
+    └── frontend/             # Next.js 15 (React, TypeScript, Tailwind)
+        └── ...
+```
 
-**Frontend:** Next.js, React, TypeScript, Tailwind CSS
+## Tech stack
 
-**Data Sources:** NVD API, AbuseIPDB API
+**Backend:** Python, FastAPI, WebSocket (requires `uvicorn[standard]` / `websockets`), httpx, python-dotenv
+
+**Frontend:** Next.js, React, TypeScript, Tailwind CSS, Chart.js, react-chartjs-2
+
+**Data sources:** NVD API, AbuseIPDB API
 
 ## Prerequisites
 
-- Python 3.8+
-- Node.js 16+
-- AbuseIPDB API key (free tier available)
-- NVD API key (optional, for increased rate limits)
+- **Python 3.10+** recommended (3.8+ may work)
+- **Node.js 18+** and npm (for Next.js 15)
+- **AbuseIPDB API key** (optional for local demo; without it, the backend uses fallback/mock-style threats)
+- **NVD API key** (optional; improves rate limits)
 
-## Setup Instructions
-
-### Backend Setup
-
-1. Navigate to backend directory and create virtual environment:
+## Quick start (clone)
 
 ```bash
-cd backend
-python -m venv venv
-
-# Activate virtual environment
-# Linux/Mac:
-source venv/bin/activate
-# Windows:
-venv\Scripts\activate
+git clone https://github.com/mikipuita/live-tracker-cyber.git
+cd live-tracker-cyber
 ```
 
-2. Install dependencies:
+## Run locally (one terminal)
+
+From `my-project/`:
 
 ```bash
-pip install fastapi uvicorn python-dotenv httpx
+chmod +x start-local.sh   # first time only
+./start-local.sh
 ```
 
-3. Create `.env` file in backend directory:
+- API: **http://127.0.0.1:9000**
+- Dashboard: **http://127.0.0.1:3000**
 
-```env
-ABUSEIPDB_API_KEY=your_abuseipdb_api_key_here
-NVD_API_KEY=your_nvd_api_key_here_optional
-```
+Stop with **Ctrl+C** (stops the frontend and cleans up the API process).
 
-**API Keys:**
-- AbuseIPDB (Required): https://www.abuseipdb.com/register
-- NVD (Optional): https://nvd.nist.gov/developers/request-an-api-key
+## Run locally (two terminals)
 
-4. Run the server:
+### Backend
 
 ```bash
+cd my-project/backend
+python3 -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env              # add keys if you have them
 python main.py
 ```
 
-Backend starts on `http://localhost:9000`
+Backend listens on **http://0.0.0.0:9000** (use **http://localhost:9000** in the browser for the health check).
 
-### Frontend Setup
+**WebSockets:** Install must include `uvicorn[standard]` (see `requirements.txt`). Without it, `/ws/threats` will not upgrade correctly.
 
-1. In a new terminal, navigate to frontend directory:
+### Frontend
 
 ```bash
-cd frontend
+cd my-project/frontend
 npm install
-```
-
-2. Run development server:
-
-```bash
 npm run dev
 ```
 
-Or for production:
+Open **http://localhost:3000**.
+
+### Production build (frontend)
 
 ```bash
+cd my-project/frontend
 npm run build
 npm start
 ```
 
-Frontend starts on `http://localhost:3000`
+## Environment variables
 
-## How It Works
+Create **`my-project/backend/.env`** (see **`.env.example`** in the same folder):
 
-The backend fetches real CVE data from NVD and malicious IPs from AbuseIPDB on startup. It then generates realistic threat scenarios by combining both data sources:
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `ABUSEIPDB_API_KEY` | No | If omitted, malicious IP list stays empty; feed still works with CVE + fallback data |
+| `NVD_API_KEY` | No | Optional; helps with NVD rate limits |
 
-- **CVE-based threats**: Real vulnerabilities paired with real malicious IPs
-- **IP-based threats**: Malicious IPs with their actual reported attack patterns
+**Get keys**
 
-Threats stream via WebSocket every 2-5 seconds to the frontend dashboard, where they're displayed with severity color-coding and geographic information.
+- AbuseIPDB: https://www.abuseipdb.com/register  
+- NVD: https://nvd.nist.gov/developers/request-an-api-key  
 
-Data refreshes automatically: CVEs every 30 minutes, IPs every 4 hours.
+## API endpoints
 
-## API Endpoints
+- `ws://localhost:9000/ws/threats` — real-time threat feed (WebSocket)
+- `GET /` — health check and cache counts
+- `GET /api/cves` — sample of cached CVEs
+- `GET /api/malicious-ips` — sample of cached IPs
 
-- `ws://localhost:9000/ws/threats` - Real-time threat feed (WebSocket)
-- `GET /` - Health check and status
-- `GET /api/cves` - View cached CVE data
-- `GET /api/malicious-ips` - View cached malicious IPs
+## How it works
 
-## Future Development
-
-**Upcoming Features:**
-- Data visualizations and analytics dashboard (in development by collaborator)
-- Threat filtering by severity and type
-- Historical threat analytics
-- Export functionality
+The backend refreshes CVE data from NVD and (if configured) blacklist data from AbuseIPDB. Threat objects are streamed every few seconds over WebSocket. The Next.js UI shows a live table and charts fed from the same stream.
 
 ## Troubleshooting
 
-**Malicious IPs not loading:**
-- Verify `ABUSEIPDB_API_KEY` is correctly set in `.env` within the backend directory
-- Check terminal for error messages
+**WebSocket failed / live feed empty**
 
-**WebSocket connection failed:**
-- Ensure backend is running on port 9000
-- Check browser console for CORS errors
+- Confirm the backend is running on port **9000**.
+- Confirm dependencies: `pip install -r requirements.txt` (includes WebSocket support).
+- Check the browser console for connection errors.
+
+**Malicious IPs always empty**
+
+- Set `ABUSEIPDB_API_KEY` in `my-project/backend/.env` and restart the API.
+
+**`Module not found` on the frontend**
+
+- Run `npm install` inside **`my-project/frontend`**. Charts need `chart.js` and `react-chartjs-2` (listed in `package.json`).
+
+## Deployment note
+
+This app needs a **long-running Python process** for WebSockets plus a **Next.js** production server (or static export if you refactor). Typical setups use a **VPS or cloud VM** with HTTPS and a reverse proxy, or split **API** (e.g. Render/Fly.io) + **frontend** (e.g. Vercel) with `wss://` pointing at your API host.
 
 ## Acknowledgments
 
-Data sources powered by:
+Data sources:
+
 - NVD (National Vulnerability Database)
 - AbuseIPDB Community
-- MITRE ATT&CK Framework
+- MITRE ATT&CK–style category mapping in backend logic
 
-**Disclaimer**: This is an educational project demonstrating threat intelligence aggregation. Data represents real vulnerabilities and reported malicious IPs but should not be used as the sole source for production security decisions.
+**Disclaimer:** Educational project. Do not rely on this as your only source for production security decisions.
 
 ## License
 
-Not yet...
+Not yet specified.
+
+## Contributing and GitHub
+
+The default remote is the main project repo. If you do not have write access, **fork** the repository on GitHub, add your fork as `origin`, and open a **pull request** with your branch.
+
+```bash
+# Example after forking to YOUR_USER/live-tracker-cyber
+git remote set-url origin https://github.com/YOUR_USER/live-tracker-cyber.git
+git push -u origin main
+```
 
 ## Authors
 
-Miguel Sanchez - Backend & Real-time Threat Intelligence
-
-Rishi Alva - Data Visualizations & Analytics
+- **Miguel Sanchez:** backend and real-time threat intelligence  
+- **Rishi Alva:** data visualizations and analytics (dashboard charts, frontend integration)
