@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Security Threat Dashboard",
-  description: "Security Threat Dashboard",
+  title: "Threat intelligence dashboard",
+  description:
+    "Live feed and charts from NVD and AbuseIPDB-backed threat simulation (educational demo).",
 };
 
 export default function RootLayout({
@@ -25,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         {children}
       </body>

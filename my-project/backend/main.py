@@ -25,10 +25,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CyberThreat API")
 
-origins = os.getenv("ORIGINS", "").split(",")
+_default_origins = "http://localhost:3000,http://127.0.0.1:3000"
+_origins_env = os.getenv("ORIGINS", _default_origins).strip()
+origins = [o.strip() for o in _origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins or ["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"]
 )
@@ -40,6 +42,24 @@ cve_cache = []
 malicious_ips_cache = []
 last_cve_fetch = None
 last_ip_fetch = None
+
+# Approximate centroids for IP jitter and mock threats (ISO-style codes)
+COUNTRY_COORDS = {
+    "CN": (35.8617, 104.1954),
+    "RU": (61.5240, 105.3188),
+    "US": (37.0902, -95.7129),
+    "BR": (-14.2350, -51.9253),
+    "IN": (20.5937, 78.9629),
+    "DE": (51.1657, 10.4515),
+    "NL": (52.1326, 5.2913),
+    "FR": (46.2276, 2.2137),
+    "GB": (55.3781, -3.4360),
+    "KR": (35.9078, 127.7669),
+    "JP": (36.2048, 138.2529),
+    "AU": (-25.2744, 133.7751),
+    "CA": (56.1304, -106.3468),
+    "MX": (23.6345, -102.5528),
+}
 
 async def fetch_recent_cves():
     """Fetch recent CVEs from NVD"""
@@ -192,20 +212,7 @@ def generate_real_threat():
     if malicious_ips_cache:
         ip_data = random.choice(malicious_ips_cache)
 
-        country_coords = {
-            "CN": (35.8617, 104.1954),
-            "RU": (61.5240, 105.3188),
-            "US": (37.0902, -95.7129),
-            "BR": (-14.2350, -51.9253),
-            "IN": (20.5937, 78.9629),
-            "DE": (51.1657, 10.4515),
-            "NL": (52.1326, 5.2913),
-            "FR": (46.2276, 2.2137),
-            "GB": (55.3781, -3.4360),
-            "KR": (35.9078, 127.7669),
-        }
-        
-        coords = country_coords.get(ip_data["country"], (0.0, 0.0))
+        coords = COUNTRY_COORDS.get(ip_data["country"], (0.0, 0.0))
         location = {
             "latitude": coords[0] + random.uniform(-5, 5),
             "longitude": coords[1] + random.uniform(-5, 5)
@@ -245,6 +252,8 @@ def generate_real_threat():
     else:
         # Fallback to mock data if APIs haven't returned data yet
         threat_types = ["DDoS", "Phishing", "Malware", "Brute Force"]
+        ccode = random.choice(list(COUNTRY_COORDS.keys()))
+        cy, cx = COUNTRY_COORDS[ccode]
         return {
             "timestamp": datetime.now().isoformat(),
             "type": random.choice(threat_types),
@@ -252,9 +261,10 @@ def generate_real_threat():
             "severity": random.choice(["Low", "Medium", "High"]),
             "confidence": round(random.uniform(0.5, 0.99), 2),
             "location": {
-                "latitude": round(random.uniform(-90, 90), 4),
-                "longitude": round(random.uniform(-180, 180), 4)
-            }
+                "latitude": round(cy + random.uniform(-5, 5), 4),
+                "longitude": round(cx + random.uniform(-5, 5), 4),
+            },
+            "country": ccode,
         }
     
 

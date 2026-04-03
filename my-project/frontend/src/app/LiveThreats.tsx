@@ -1,125 +1,195 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { getThreatsWebSocketUrl } from '../lib/wsUrl';
+import { useDashboard } from './DashboardContext';
+import { InsightPanelShell } from './InsightPanelShell';
 
-type Threat = {
-  timestamp: string;
-  type: string;
-  source_ip: string;
-  severity: string;
-  confidence: number; 
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  country?: string;
-  details?: string;
+function severityStyles(severity: string) {
+  const s = severity.toLowerCase();
+  if (s === 'critical')
+    return 'bg-rose-950/80 text-rose-300 ring-rose-500/30';
+  if (s === 'high') return 'bg-red-950/60 text-red-300 ring-red-500/25';
+  if (s === 'medium') return 'bg-amber-950/50 text-amber-200 ring-amber-500/25';
+  if (s === 'low') return 'bg-emerald-950/40 text-emerald-300 ring-emerald-500/20';
+  return 'bg-zinc-800 text-zinc-400 ring-white/10';
+}
+
+function severityLeftAccent(severity: string) {
+  const s = severity.toLowerCase();
+  if (s === 'critical') return 'border-l-rose-500 shadow-[0_0_20px_-4px_rgba(244,63,94,0.35)]';
+  if (s === 'high') return 'border-l-red-500 shadow-[0_0_18px_-4px_rgba(239,68,68,0.25)]';
+  if (s === 'medium') return 'border-l-amber-500 shadow-[0_0_16px_-4px_rgba(245,158,11,0.2)]';
+  if (s === 'low') return 'border-l-emerald-500 shadow-[0_0_16px_-4px_rgba(52,211,153,0.2)]';
+  return 'border-l-zinc-600';
+}
+
+function countryTagClass(code: string | undefined) {
+  const c = code?.trim();
+  if (c && c.toLowerCase() !== 'unknown')
+    return 'bg-cyan-500/10 text-cyan-300 ring-cyan-500/25';
+  return 'bg-zinc-800/80 text-zinc-500 ring-zinc-600/40';
+}
+
+function countryTagLabel(code: string | undefined) {
+  const c = code?.trim();
+  if (!c || c.toLowerCase() === 'unknown') return 'N/A';
+  return c.toUpperCase();
 }
 
 export default function LiveThreats() {
-  const [threats, setThreats] = useState<Threat[]>([]);
-  const wsRef = useRef<WebSocket | null>(null);
+  const { feedPaused, toggleFeed, threats, showConnected } = useDashboard();
 
-  useEffect(() => {
-    const ws = new WebSocket('ws://localhost:9000/ws/threats');
-    wsRef.current = ws;
+  const statusButton = (
+    <button
+      type="button"
+      onClick={toggleFeed}
+      className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition-all select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 ${
+        showConnected
+          ? 'bg-emerald-500/[0.12] text-emerald-300 ring-emerald-400/30 shadow-[0_0_20px_-6px_rgba(52,211,153,0.5)] hover:bg-emerald-500/[0.18]'
+          : feedPaused
+            ? 'bg-red-950/60 text-red-300 ring-red-500/40 hover:bg-red-950/80'
+            : 'bg-amber-950/50 text-amber-300 ring-amber-500/35 hover:bg-amber-950/70'
+      }`}
+      title={
+        feedPaused
+          ? 'Resume live feed'
+          : showConnected
+            ? 'Pause live feed'
+            : 'Connecting… click to cancel'
+      }
+      aria-pressed={showConnected}
+      aria-label={
+        feedPaused
+          ? 'Disconnected, click to connect'
+          : showConnected
+            ? 'Connected, click to pause'
+            : 'Connecting'
+      }
+    >
+      <span
+        className={`h-2 w-2 rounded-full ${
+          showConnected
+            ? 'animate-pulse bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
+            : feedPaused
+              ? 'bg-red-400'
+              : 'animate-pulse bg-amber-400'
+        }`}
+        aria-hidden
+      />
+      {showConnected ? 'Connected' : feedPaused ? 'Disconnected' : 'Connecting…'}
+    </button>
+  );
 
-    ws.onopen = () => {
-      console.log('Connected to threat feed');
-    };
-
-    ws.onmessage = (event) => {
-      const newThreat = JSON.parse(event.data);
-      setThreats((prev) => [newThreat, ...prev].slice(0, 100));
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('Disconnected from threat feed');
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, []);
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case 'critical':
-      case 'high':
-        return 'text-red-500';
-      case 'medium':
-        return 'text-orange-400';
-      case 'low':
-        return 'text-yellow-500';
-      default:
-        return 'text-gray-400';
-    }
-  };
+  const pauseBanner = feedPaused ? (
+    <div className="mt-4 rounded-xl border border-red-500/25 bg-gradient-to-r from-red-950/40 via-red-950/20 to-transparent px-4 py-3 text-center text-xs text-red-200/95 ring-1 ring-red-500/15">
+      Stream paused. The list and charts stop updating until you click{' '}
+      <span className="font-semibold text-red-100">Disconnected</span> to reconnect.
+    </div>
+  ) : null;
 
   return (
-    <div className="bg-black p-4 border border-red-500 rounded-lg">
-      <div className="flex justify-between items-center mb-2">
-        <h2 className="text-red-500 font-mono text-lg">
-          🔴 LIVE THREATS ({threats.length})
-        </h2>
-        <span className="text-green-400 font-mono text-xs animate-pulse">
-          ● ACTIVE
-        </span>
-      </div>
-      
-      <div className="max-h-[500px] overflow-y-auto">
-        <ul className="text-white font-mono text-sm space-y-2">
+    <InsightPanelShell
+      variant="stream"
+      eyebrow="Real-time stream"
+      title="Live feed"
+      meta={
+        <p className="inline-flex items-center gap-2 font-mono text-xs text-zinc-500">
+          <span className="rounded bg-zinc-900/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-cyan-500/80 ring-1 ring-cyan-500/20">
+            Buffer
+          </span>
+          <span className="tabular-nums text-cyan-200/70">
+            {threats.length} event{threats.length === 1 ? '' : 's'}
+          </span>
+        </p>
+      }
+      headerRight={statusButton}
+      banner={pauseBanner}
+      bodyClassName="mt-5"
+    >
+      <div
+        className={`threat-scroll max-h-[min(520px,70vh)] overflow-y-auto rounded-xl border border-white/[0.06] bg-gradient-to-b from-zinc-900/40 to-zinc-950/80 p-3 pr-2 ring-1 ring-inset ring-white/[0.04] transition-opacity ${feedPaused ? 'opacity-55' : 'opacity-100'}`}
+      >
+        <ul className="space-y-3 font-mono text-sm">
           {threats.length === 0 ? (
-            <li className="text-gray-500 py-2">Waiting for threat data...</li>
+            <li className="rounded-xl border border-dashed border-cyan-500/20 bg-zinc-950/60 px-5 py-10 text-center">
+              <p className="text-sm text-zinc-400">
+                {feedPaused ? (
+                  <>
+                    Feed is off. Click <span className="font-medium text-red-400">Disconnected</span>{' '}
+                    above to resume from{' '}
+                    <code className="text-cyan-400/90" suppressHydrationWarning>
+                      {getThreatsWebSocketUrl()}
+                    </code>
+                    .
+                  </>
+                ) : (
+                  <>
+                    Waiting for events from{' '}
+                    <code className="text-cyan-400/90" suppressHydrationWarning>
+                      {getThreatsWebSocketUrl()}
+                    </code>
+                    …
+                  </>
+                )}
+              </p>
+              <p className="mt-3 text-[11px] text-zinc-600">New rows appear here as the API streams.</p>
+            </li>
           ) : (
             threats.map((threat, idx) => (
-              <li 
-                key={`${threat.timestamp}-${idx}`} 
-                className="py-2 px-2 bg-gray-900 bg-opacity-50 rounded border-l-2 border-red-600 hover:bg-gray-800 transition-colors"
+              <li
+                key={`${threat.timestamp}-${idx}`}
+                className={`rounded-xl border border-white/[0.08] border-l-[3px] bg-zinc-950/70 py-3 pl-4 pr-3 backdrop-blur-sm transition-all duration-200 hover:border-cyan-500/25 hover:bg-zinc-900/80 ${severityLeftAccent(threat.severity)}`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <span className="text-yellow-300 font-bold">
-                      {threat.type}
-                    </span>
-                    {threat.country && (
-                      <span className="ml-2 text-xs bg-blue-900 px-1 rounded">
-                        {threat.country}
-                      </span>
-                    )}
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium tracking-tight text-zinc-100">{threat.type}</span>
                   </div>
-                  <span className={`text-xs font-bold ${getSeverityColor(threat.severity)}`}>
-                    [{threat.severity.toUpperCase()}]
+                  <span
+                    className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ${severityStyles(threat.severity)}`}
+                  >
+                    {threat.severity}
                   </span>
                 </div>
-                
-                <div className="mt-1 text-xs text-gray-400">
-                  <span className="text-cyan-400">{threat.source_ip}</span>
-                  <span className="mx-2">•</span>
-                  <span>Confidence: {(threat.confidence * 100).toFixed(0)}%</span>
-                  <span className="mx-2">•</span>
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
+                  <span className="text-[10px] uppercase tracking-wider text-zinc-600">Country</span>
+                  <span
+                    className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase ring-1 ${countryTagClass(threat.country)}`}
+                  >
+                    {countryTagLabel(threat.country)}
+                  </span>
+                  <span className="text-zinc-700" aria-hidden>
+                    |
+                  </span>
+                  <span className="text-cyan-400/90">{threat.source_ip}</span>
+                  <span className="text-zinc-600" aria-hidden>
+                    ·
+                  </span>
+                  <span>Confidence {(threat.confidence * 100).toFixed(0)}%</span>
+                  <span className="text-zinc-600" aria-hidden>
+                    ·
+                  </span>
                   <span>
-                    @ ({threat.location.latitude.toFixed(2)}, {threat.location.longitude.toFixed(2)})
+                    {threat.location.latitude.toFixed(2)}, {threat.location.longitude.toFixed(2)}
                   </span>
                 </div>
 
                 {threat.details && (
-                  <div className="mt-1 text-xs text-gray-500 italic truncate">
+                  <p className="mt-2 line-clamp-2 text-[11px] italic leading-snug text-zinc-500">
                     {threat.details}
-                  </div>
+                  </p>
                 )}
-                
-                <div className="mt-1 text-xs text-gray-600">
-                  {new Date(threat.timestamp).toLocaleTimeString()}
-                </div>
+
+                <time
+                  className="mt-2 block text-[10px] text-zinc-600"
+                  dateTime={threat.timestamp}
+                >
+                  {new Date(threat.timestamp).toLocaleString()}
+                </time>
               </li>
             ))
           )}
         </ul>
       </div>
-    </div>
+    </InsightPanelShell>
   );
 }

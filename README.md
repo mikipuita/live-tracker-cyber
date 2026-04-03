@@ -87,7 +87,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:3000**.
+Open **http://127.0.0.1:3000** (the dev script binds to this host so Next.js does not call `os.networkInterfaces()`, which can crash on some Node/OS setups).
 
 ### Production build (frontend)
 
@@ -113,16 +113,23 @@ Create **`my-project/backend/.env`** (see **`.env.example`** in the same folder)
 
 ## API endpoints
 
-- `ws://localhost:9000/ws/threats` — real-time threat feed (WebSocket)
-- `GET /` — health check and cache counts
-- `GET /api/cves` — sample of cached CVEs
-- `GET /api/malicious-ips` — sample of cached IPs
+- `ws://localhost:9000/ws/threats`: real-time threat feed (WebSocket)
+- `GET /`: health check and cache counts
+- `GET /api/cves`: sample of cached CVEs
+- `GET /api/malicious-ips`: sample of cached IPs
 
 ## How it works
 
 The backend refreshes CVE data from NVD and (if configured) blacklist data from AbuseIPDB. Threat objects are streamed every few seconds over WebSocket. The Next.js UI shows a live table and charts fed from the same stream.
 
 ## Troubleshooting
+
+**“This site can’t be reached” / dashboard never loads / `npm run dev` crashes**
+
+- The dev server must be running (`./start-local.sh` or `npm run dev` in `frontend`). If nothing listens on port **3000**, the browser will show an error page.
+- If **`npm run dev` exits** with `uv_interface_addresses` / `Unknown system error`, use the project script as written (it passes **`--hostname 127.0.0.1`**) or run:  
+  `npx next dev --hostname 127.0.0.1 --port 3000`
+- If port **3000 is already in use**, Next.js picks another port (e.g. **3001**); read the terminal line that says **“Local:”** and open that URL, or stop the other process using 3000.
 
 **WebSocket failed / live feed empty**
 
