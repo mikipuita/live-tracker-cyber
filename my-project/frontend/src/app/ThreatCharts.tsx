@@ -31,7 +31,7 @@ ChartJS.register(
 );
 
 const chartCard =
-  'relative overflow-hidden rounded-xl border border-white/[0.1] bg-gradient-to-br from-zinc-900/90 via-zinc-950/95 to-black/40 p-4 shadow-lg shadow-black/35 ring-1 ring-inset ring-white/[0.05] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent';
+  'chart-card relative overflow-hidden rounded-xl border border-white/[0.1] bg-gradient-to-br from-zinc-900/90 via-zinc-950/95 to-black/40 p-4 shadow-lg shadow-black/35 ring-1 ring-inset ring-white/[0.05] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent';
 
 const axisStyle = {
   ticks: { color: '#9ca3af' as const, font: { size: 10 } },
@@ -266,7 +266,7 @@ export default function ThreatCharts() {
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-gradient-to-br from-cyan-500/30 via-cyan-500/5 to-transparent p-[1px] shadow-lg shadow-cyan-950/20 ring-1 ring-cyan-500/20">
-            <div className="h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
+            <div className="stats-card h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400/90">
                 Events in view
               </p>
@@ -279,7 +279,7 @@ export default function ThreatCharts() {
             </div>
           </div>
           <div className="rounded-xl bg-gradient-to-br from-violet-500/30 via-violet-500/5 to-transparent p-[1px] shadow-lg shadow-violet-950/20 ring-1 ring-violet-500/20">
-            <div className="h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
+            <div className="stats-card h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-400/90">
                 Avg. confidence
               </p>
@@ -292,7 +292,7 @@ export default function ThreatCharts() {
             </div>
           </div>
           <div className="rounded-xl bg-gradient-to-br from-emerald-500/30 via-emerald-500/5 to-transparent p-[1px] shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-500/20">
-            <div className="h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
+            <div className="stats-card h-full rounded-[11px] bg-zinc-950/95 p-4 backdrop-blur-sm">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-400/90">
                 Most common threat
               </p>

@@ -48,7 +48,7 @@ export function InsightPanelShell({
 }) {
   const v = variants[variant];
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/[0.12] bg-zinc-950/75 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.07] backdrop-blur-md">
+    <section className="insight-panel relative overflow-hidden rounded-2xl border border-white/[0.12] bg-zinc-950/75 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.65)] ring-1 ring-white/[0.07] backdrop-blur-md">
       <div
         className={`pointer-events-none absolute inset-x-0 top-0 z-10 h-[3px] bg-gradient-to-r ${v.bar}`}
         aria-hidden

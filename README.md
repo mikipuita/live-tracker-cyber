@@ -1,179 +1,143 @@
 # Real-Time Cyber Threat Intelligence Dashboard
 
-A real-time cybersecurity threat intelligence platform that aggregates and visualizes live threat data from authoritative security databases. The system streams threat intelligence to an interactive dashboard with charts and a live feed.
+A full-stack threat intelligence dashboard that streams live CVE and malicious IP data to an interactive UI. Built by **Miguel Sanchez** (backend, threat intelligence) and **Rishi Alva** (data visualizations, frontend integration).
 
-## Features
+> **Educational project.** Not intended as a production security tool.
 
-- Real-time threat feed via WebSocket streaming
-- CVE tracking from NVD (National Vulnerability Database)
-- Malicious IP monitoring from AbuseIPDB (when API key is configured)
-- Severity-based views (Low, Medium, High, Critical) and threat-type charts (Chart.js)
-- Geolocation hints with country-based coordinates in generated scenarios
-- Interactive dashboard: live list plus **Threat Visualizations** (pie and bar charts)
+---
 
-## Repository layout
+## What it does
+
+- Fetches real CVEs from the [NVD](https://nvd.nist.gov/) and malicious IPs from [AbuseIPDB](https://www.abuseipdb.com/)
+- Streams threat events every 2–5 seconds over WebSocket
+- Displays a live feed with severity badges, country tags, and IP attribution
+- Visualizes the stream with real-time charts (severity breakdown, threat types, activity timeline, top regions)
+- Falls back to mock data if API keys are not configured
+
+---
+
+## Stack
+
+| Layer | Tech |
+|-------|------|
+| Backend | Python, FastAPI, WebSocket, httpx |
+| Frontend | Next.js 15, TypeScript, Tailwind CSS, Chart.js |
+| Data sources | NVD API, AbuseIPDB API |
+
+---
+
+## Project structure
 
 ```
 live-tracker-cyber/
-├── README.md                 # This file
 └── my-project/
-    ├── start-local.sh        # One command: API + dashboard (dev)
-    ├── backend/              # FastAPI + WebSocket (Python)
-    │   ├── main.py
+    ├── start-local.sh        # Runs backend + frontend in one command
+    ├── backend/
+    │   ├── main.py           # FastAPI app + WebSocket + data fetching
     │   ├── requirements.txt
     │   └── .env.example
-    └── frontend/             # Next.js 15 (React, TypeScript, Tailwind)
-        └── ...
+    └── frontend/
+        └── src/app/          # Next.js App Router pages + components
 ```
 
-## Tech stack
+---
 
-**Backend:** Python, FastAPI, WebSocket (requires `uvicorn[standard]` / `websockets`), httpx, python-dotenv
+## Quick start
 
-**Frontend:** Next.js, React, TypeScript, Tailwind CSS, Chart.js, react-chartjs-2
-
-**Data sources:** NVD API, AbuseIPDB API
-
-## Prerequisites
-
-- **Python 3.10+** recommended (3.8+ may work)
-- **Node.js 18+** and npm (for Next.js 15)
-- **AbuseIPDB API key** (optional for local demo; without it, the backend uses fallback/mock-style threats)
-- **NVD API key** (optional; improves rate limits)
-
-## Quick start (clone)
+**Prerequisites:** Python 3.10+, Node.js 18+
 
 ```bash
 git clone https://github.com/mikipuita/live-tracker-cyber.git
-cd live-tracker-cyber
+cd live-tracker-cyber/my-project
 ```
 
-## Run locally (one terminal)
-
-From `my-project/`:
+### Option A — one command
 
 ```bash
-chmod +x start-local.sh   # first time only
+# First time only: set up the backend venv
+cd backend && python3 -m venv venv && ./venv/bin/pip install -r requirements.txt && cd ..
+
+chmod +x start-local.sh
 ./start-local.sh
 ```
 
-- API: **http://127.0.0.1:9000**
-- Dashboard: **http://127.0.0.1:3000**
+- API: `http://127.0.0.1:9000`
+- Dashboard: `http://127.0.0.1:3000`
 
-Stop with **Ctrl+C** (stops the frontend and cleans up the API process).
+Stop with **Ctrl+C**.
 
-## Run locally (two terminals)
+### Option B — two terminals
 
-### Backend
-
+**Terminal 1 — backend:**
 ```bash
 cd my-project/backend
 python3 -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env              # add keys if you have them
+cp .env.example .env   # add API keys if you have them
 python main.py
 ```
 
-Backend listens on **http://0.0.0.0:9000** (use **http://localhost:9000** in the browser for the health check).
-
-**WebSockets:** Install must include `uvicorn[standard]` (see `requirements.txt`). Without it, `/ws/threats` will not upgrade correctly.
-
-### Frontend
-
+**Terminal 2 — frontend:**
 ```bash
 cd my-project/frontend
 npm install
 npm run dev
 ```
 
-Open **http://127.0.0.1:3000** (the dev script binds to this host so Next.js does not call `os.networkInterfaces()`, which can crash on some Node/OS setups).
+Open `http://127.0.0.1:3000`.
 
-### Production build (frontend)
-
-```bash
-cd my-project/frontend
-npm run build
-npm start
-```
+---
 
 ## Environment variables
 
-Create **`my-project/backend/.env`** (see **`.env.example`** in the same folder):
+Add to `my-project/backend/.env` (both are optional):
 
-| Variable | Required | Notes |
-|----------|----------|--------|
-| `ABUSEIPDB_API_KEY` | No | If omitted, malicious IP list stays empty; feed still works with CVE + fallback data |
-| `NVD_API_KEY` | No | Optional; helps with NVD rate limits |
+| Variable | Notes |
+|----------|-------|
+| `ABUSEIPDB_API_KEY` | Get at [abuseipdb.com/register](https://www.abuseipdb.com/register). Without it, malicious IP data is empty and the feed uses CVE + fallback data. |
+| `NVD_API_KEY` | Get at [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key). Increases NVD rate limits. |
 
-**Get keys**
-
-- AbuseIPDB: https://www.abuseipdb.com/register  
-- NVD: https://nvd.nist.gov/developers/request-an-api-key  
+---
 
 ## API endpoints
 
-- `ws://localhost:9000/ws/threats`: real-time threat feed (WebSocket)
-- `GET /`: health check and cache counts
-- `GET /api/cves`: sample of cached CVEs
-- `GET /api/malicious-ips`: sample of cached IPs
+| Method | Path | Description |
+|--------|------|-------------|
+| `WS` | `/ws/threats` | Live threat stream |
+| `GET` | `/` | Health check + cache counts |
+| `GET` | `/api/cves` | Sample of cached CVEs |
+| `GET` | `/api/malicious-ips` | Sample of cached IPs |
 
-## How it works
+---
 
-The backend refreshes CVE data from NVD and (if configured) blacklist data from AbuseIPDB. Threat objects are streamed every few seconds over WebSocket. The Next.js UI shows a live table and charts fed from the same stream.
+## Deployment
+
+The live version runs at [miggysanchez.com/threat-dashboard](https://miggysanchez.com/threat-dashboard).
+
+- Frontend: Next.js static export served by nginx
+- Backend: FastAPI/uvicorn managed by systemd (`mazena-threats.service`)
+- WebSocket proxied through nginx at `wss://miggysanchez.com/ws/threats`
+
+---
 
 ## Troubleshooting
 
-**“This site can’t be reached” / dashboard never loads / `npm run dev` crashes**
+**Dashboard never loads**
+→ Make sure both backend (port 9000) and frontend (port 3000) are running.
 
-- The dev server must be running (`./start-local.sh` or `npm run dev` in `frontend`). If nothing listens on port **3000**, the browser will show an error page.
-- If **`npm run dev` exits** with `uv_interface_addresses` / `Unknown system error`, use the project script as written (it passes **`--hostname 127.0.0.1`**) or run:  
-  `npx next dev --hostname 127.0.0.1 --port 3000`
-- If port **3000 is already in use**, Next.js picks another port (e.g. **3001**); read the terminal line that says **“Local:”** and open that URL, or stop the other process using 3000.
-
-**WebSocket failed / live feed empty**
-
-- Confirm the backend is running on port **9000**.
-- Confirm dependencies: `pip install -r requirements.txt` (includes WebSocket support).
-- Check the browser console for connection errors.
+**Live feed is empty / WebSocket error**
+→ Check browser console. Backend must be on port 9000. Run `pip install -r requirements.txt` to ensure WebSocket support is installed.
 
 **Malicious IPs always empty**
+→ Set `ABUSEIPDB_API_KEY` in `.env` and restart the backend.
 
-- Set `ABUSEIPDB_API_KEY` in `my-project/backend/.env` and restart the API.
+**`npm run dev` crashes with `uv_interface_addresses`**
+→ Run `npx next dev --hostname 127.0.0.1 --port 3000` instead.
 
-**`Module not found` on the frontend**
-
-- Run `npm install` inside **`my-project/frontend`**. Charts need `chart.js` and `react-chartjs-2` (listed in `package.json`).
-
-## Deployment note
-
-This app needs a **long-running Python process** for WebSockets plus a **Next.js** production server (or static export if you refactor). Typical setups use a **VPS or cloud VM** with HTTPS and a reverse proxy, or split **API** (e.g. Render/Fly.io) + **frontend** (e.g. Vercel) with `wss://` pointing at your API host.
-
-## Acknowledgments
-
-Data sources:
-
-- NVD (National Vulnerability Database)
-- AbuseIPDB Community
-- MITRE ATT&CK–style category mapping in backend logic
-
-**Disclaimer:** Educational project. Do not rely on this as your only source for production security decisions.
-
-## License
-
-Not yet specified.
-
-## Contributing and GitHub
-
-The default remote is the main project repo. If you do not have write access, **fork** the repository on GitHub, add your fork as `origin`, and open a **pull request** with your branch.
-
-```bash
-# Example after forking to YOUR_USER/live-tracker-cyber
-git remote set-url origin https://github.com/YOUR_USER/live-tracker-cyber.git
-git push -u origin main
-```
+---
 
 ## Authors
 
-- **Miguel Sanchez:** backend and real-time threat intelligence  
-- **Rishi Alva:** data visualizations and analytics (dashboard charts, frontend integration)
+- **Miguel Sanchez** — backend, WebSocket streaming, threat intelligence logic
+- **Rishi Alva** — data visualizations, chart components, frontend integration
