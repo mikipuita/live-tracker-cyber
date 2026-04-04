@@ -27,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
         <link rel="stylesheet" href="/nav.css" />
         {/* Sync theme from localStorage before first paint to avoid flash */}
         <script
@@ -37,6 +38,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <nav className="site-nav">
+          {/* eslint-disable @next/next/no-html-link-for-pages */}
           <a className="nav-brand" href="/">miggy</a>
           <div className="nav-links">
             <a className="nav-link" href="/workout/">Workout</a>
