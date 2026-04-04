@@ -91,9 +91,19 @@ export default function LiveThreats() {
       variant="stream"
       eyebrow="Real-time stream"
       title="Live feed"
+      description={
+        <p>
+          Each card is one synthetic event as it lands. Severity colors are a quick triage language,
+          coordinates and IPs are whatever the simulator attached. Read top-to-bottom like a ticker,
+          newest near the top of the scroll.
+        </p>
+      }
       meta={
         <p className="inline-flex items-center gap-2 font-mono text-xs text-zinc-500">
-          <span className="rounded bg-zinc-900/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-cyan-500/80 ring-1 ring-cyan-500/20">
+          <span
+            className="rounded bg-zinc-900/90 px-2 py-0.5 text-[10px] uppercase tracking-wider text-cyan-500/80 ring-1 ring-cyan-500/20"
+            title="How many events are currently held in memory for charts and the map"
+          >
             Buffer
           </span>
           <span className="tabular-nums text-cyan-200/70">
@@ -131,7 +141,10 @@ export default function LiveThreats() {
                   </>
                 )}
               </p>
-              <p className="mt-3 text-[11px] text-zinc-600">New rows appear here as the API streams.</p>
+              <p className="mt-3 text-[11px] text-zinc-600">
+                Rows materialize in real time. Let it run a minute and the buffer becomes a miniature
+                storyline.
+              </p>
             </li>
           ) : (
             threats.map((threat, idx) => (
@@ -145,30 +158,49 @@ export default function LiveThreats() {
                   </div>
                   <span
                     className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ${severityStyles(threat.severity)}`}
+                    title={`Triage tier: ${threat.severity}; color matches the map marker family`}
                   >
                     {threat.severity}
                   </span>
                 </div>
 
-                <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500">
-                  <span className="text-[10px] uppercase tracking-wider text-zinc-600">Country</span>
+                <div
+                  className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-zinc-500"
+                  title="Geo tag, source address, model confidence, and map coordinates for this row"
+                >
+                  <span
+                    className="text-[10px] uppercase tracking-wider text-zinc-600"
+                    title="Region hint from the feed (may be unknown in demos)"
+                  >
+                    Country
+                  </span>
                   <span
                     className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase ring-1 ${countryTagClass(threat.country)}`}
+                    title="ISO-style tag when present"
                   >
                     {countryTagLabel(threat.country)}
                   </span>
                   <span className="text-zinc-700" aria-hidden>
                     |
                   </span>
-                  <span className="text-cyan-400/90">{threat.source_ip}</span>
+                  <span
+                    className="text-cyan-400/90"
+                    title="Synthetic or sampled source address. Do not block production traffic from this UI"
+                  >
+                    {threat.source_ip}
+                  </span>
                   <span className="text-zinc-600" aria-hidden>
                     ·
                   </span>
-                  <span>Confidence {(threat.confidence * 100).toFixed(0)}%</span>
+                  <span title="How sure the generator was when labeling this event">
+                    Confidence {(threat.confidence * 100).toFixed(0)}%
+                  </span>
                   <span className="text-zinc-600" aria-hidden>
                     ·
                   </span>
-                  <span>
+                  <span
+                    title="Lat/long used on the map layer (approximate in mock data)"
+                  >
                     {threat.location.latitude.toFixed(2)}, {threat.location.longitude.toFixed(2)}
                   </span>
                 </div>
