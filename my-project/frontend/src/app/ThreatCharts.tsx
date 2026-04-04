@@ -98,7 +98,7 @@ export default function ThreatCharts() {
     borderColor: 'rgba(255,255,255,0.1)',
     borderWidth: 1,
     padding: 12,
-    titleFont: { size: 12, weight: '600' as const },
+    titleFont: { size: 12, weight: 600 as const },
     bodyFont: { size: 11 },
     footerFont: { size: 10 },
     footerColor: '#a1a1aa',
