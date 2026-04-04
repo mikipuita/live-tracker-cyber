@@ -37,9 +37,9 @@ export default function Home() {
 
         <footer className="mt-14 border-t border-white/[0.06] pt-8 text-center">
           <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">
-            <a href="https://github.com/mikipuita" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Miguel Sanchez</a>{' '}
+            <a href="https://www.linkedin.com/in/miguel-sanchez-morales/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Miguel Sanchez</a>{' '}
             <span className="text-zinc-700">×</span>{' '}
-            <a href="https://github.com/Rishi-Alva" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Rishi Alva</a>
+            <a href="https://rishi-alva.github.io/RishiAlva.github.io/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Rishi Alva</a>
           </p>
         </footer>
       </div>
