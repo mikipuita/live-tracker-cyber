@@ -82,6 +82,27 @@ export default function ThreatCharts() {
     'Critical: top priority',
     'Unknown / mixed',
   ];
+
+  const severityTooltipHints = [
+    'Basement of the priority stack; still worth logging for patterns.',
+    'Worth a second look if the same label keeps repeating.',
+    'Elevated: imagine paging someone on-call for this class of signal.',
+    'Treat like a flashing red: verify fast, contain if real.',
+    'Severity missing or mixed sources; compare with the raw type label.',
+  ];
+
+  const chartTooltipBase = {
+    backgroundColor: 'rgba(24,24,27,0.95)',
+    titleColor: '#fafafa',
+    bodyColor: '#d4d4d8',
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    padding: 12,
+    titleFont: { size: 12, weight: '600' as const },
+    bodyFont: { size: 11 },
+    footerFont: { size: 10 },
+    footerColor: '#a1a1aa',
+  };
   const severityCounts = severityOrder.map((s) =>
     threats.filter(
       (t) => (t.severity || 'Unknown').toLowerCase() === s.toLowerCase(),
@@ -209,8 +230,9 @@ export default function ThreatCharts() {
       className="mt-4 rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-950/50 via-amber-950/25 to-transparent px-4 py-3 text-center text-xs text-amber-100/95 ring-1 ring-amber-500/20"
       role="status"
     >
-      Charts are frozen; they use the same pause as the live list. Click{' '}
-      <span className="font-semibold text-amber-50">Disconnected</span> on the left to resume.
+      Snapshot mode: every viz is a time capsule until you reconnect. Flip{' '}
+      <span className="font-semibold text-amber-50">Disconnected</span> on the live feed to let new
+      data paint again.
     </div>
   ) : null;
 
@@ -221,18 +243,19 @@ export default function ThreatCharts() {
       title="Visualizations"
       description={
         <p>
-          Plain-language views of what is streaming in, useful if you are new to security
-          dashboards. Higher bars or bigger slices mean more events in that category in this
-          sample.
+          Each chart is a different lens on the same live buffer. Think of it as turning the lights on
+          different corners of the room. Hover any bar, slice, or point for a quick read on what you
+          are seeing; bigger shapes simply mean more events landed in that bucket during this demo
+          window.
         </p>
       }
       meta={
         <p className="font-mono text-xs text-zinc-500">
           {feedPaused
-            ? 'Paused: same as the live feed toggle (no new data until you reconnect).'
+            ? 'Frozen snapshot: reconnect the stream and these panels will inhale fresh points again.'
             : eventCount === 0
-              ? 'Charts fill as events stream in.'
-              : `Based on the last ${eventCount} streamed event${eventCount === 1 ? '' : 's'}.`}
+              ? 'Idle canvas: once the socket ticks, color starts stacking here.'
+              : `Rendering the newest ${eventCount} event${eventCount === 1 ? '' : 's'} held in memory.`}
         </p>
       }
       banner={pauseBanner}
@@ -251,7 +274,7 @@ export default function ThreatCharts() {
                 {eventCount}
               </p>
               <p className="mt-2 text-[11px] leading-snug text-zinc-500">
-                How many items we are charting right now (demo sample).
+                Size of the rolling buffer. Your entire story on these charts is this many rows deep.
               </p>
             </div>
           </div>
@@ -264,7 +287,7 @@ export default function ThreatCharts() {
                 {avgConfidencePct !== null ? `${avgConfidencePct}%` : '-'}
               </p>
               <p className="mt-2 text-[11px] leading-snug text-zinc-500">
-                How strongly the source believes each item (higher = more sure).
+                Mean model or feed confidence. High numbers mean the label was less of a coin flip.
               </p>
             </div>
           </div>
@@ -277,7 +300,7 @@ export default function ThreatCharts() {
                 {headlineType ?? '-'}
               </p>
               <p className="mt-2 text-[11px] leading-snug text-zinc-500">
-                The threat type that showed up most often in this sample.
+                Current “headline” category, useful when one motif is dominating the noise.
               </p>
             </div>
           </div>
@@ -288,8 +311,8 @@ export default function ThreatCharts() {
             Activity in the last few minutes
           </h3>
           <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-            Taller bumps mean more events arrived during that short slice of time, like a simple
-            heart monitor for traffic.
+            A lightweight pulse chart: each bump is how many events landed in a ~45s slice. Sudden
+            spikes are your “something just woke up” moments; cross-check against the map and feed.
           </p>
           <div className="relative h-[200px] w-full">
             <Line
@@ -300,11 +323,13 @@ export default function ThreatCharts() {
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: 'rgba(24,24,27,0.95)',
-                    titleColor: '#fafafa',
-                    bodyColor: '#d4d4d8',
-                    borderColor: 'rgba(255,255,255,0.1)',
-                    borderWidth: 1,
+                    ...chartTooltipBase,
+                    callbacks: {
+                      afterBody: () => [
+                        '',
+                        'Spike = burst in that window; flatline = quiet channel (for now).',
+                      ],
+                    },
                   },
                 },
                 scales: {
@@ -329,7 +354,8 @@ export default function ThreatCharts() {
               How serious are the alerts?
             </h3>
             <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-              Slice size shows the mix, not a prediction of real-world harm, just this stream.
+              A mood ring for severity: slice size is only how the mix feels inside this buffer, not a
+              forecast of damage. Hover a wedge for a plain-English nudge.
             </p>
             <div className="relative mx-auto max-h-[260px] max-w-[300px]">
               <Pie
@@ -338,9 +364,21 @@ export default function ThreatCharts() {
                   plugins: {
                     legend: legendBottom,
                     tooltip: {
-                      backgroundColor: 'rgba(24,24,27,0.95)',
-                      titleColor: '#fafafa',
-                      bodyColor: '#d4d4d8',
+                      ...chartTooltipBase,
+                      callbacks: {
+                        title: (items) => {
+                          const i = items[0]?.dataIndex ?? 0;
+                          return friendlySeverityLabels[i] ?? items[0]?.label ?? '';
+                        },
+                        label: (ctx) => {
+                          const n = typeof ctx.parsed === 'number' ? ctx.parsed : 0;
+                          return ` ${n} event${n === 1 ? '' : 's'} in this buffer`;
+                        },
+                        afterBody: (items) => {
+                          const i = items[0]?.dataIndex ?? 0;
+                          return ['', severityTooltipHints[i] ?? ''];
+                        },
+                      },
                     },
                   },
                 }}
@@ -352,7 +390,8 @@ export default function ThreatCharts() {
               What kinds of problems show up?
             </h3>
             <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-              Top labels in this sample (CVE-style names, attack types, etc.).
+              Leaderboard of raw labels: CVE strings, attack families, whatever the simulator threw in.
+              Taller bars are simply “showed up more often here,” not global popularity.
             </p>
             <Bar
               data={typeData}
@@ -362,9 +401,17 @@ export default function ThreatCharts() {
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: 'rgba(24,24,27,0.95)',
-                    titleColor: '#fafafa',
-                    bodyColor: '#d4d4d8',
+                    ...chartTooltipBase,
+                    callbacks: {
+                      label: (ctx) => {
+                        const n = ctx.parsed.y;
+                        return ` ${n} hit${n === 1 ? '' : 's'}; rank is only for this session`;
+                      },
+                      afterBody: () => [
+                        '',
+                        'If one bar dominates, drill the live feed: repetition often tells a story.',
+                      ],
+                    },
                   },
                 },
                 scales: {
@@ -394,7 +441,8 @@ export default function ThreatCharts() {
               Seriousness at a glance (bars)
             </h3>
             <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-              Same idea as the pie, but easier to compare side by side.
+              Horizontal read on the same severity mix, easier to eyeball “who is longest” than a pie
+              when categories are close. Hover for the same color commentary as the donut.
             </p>
             <div className="relative min-h-[220px]">
               <Bar
@@ -406,9 +454,17 @@ export default function ThreatCharts() {
                   plugins: {
                     legend: { display: false },
                     tooltip: {
-                      backgroundColor: 'rgba(24,24,27,0.95)',
-                      titleColor: '#fafafa',
-                      bodyColor: '#d4d4d8',
+                      ...chartTooltipBase,
+                      callbacks: {
+                        label: (ctx) => {
+                          const n = ctx.parsed.x;
+                          return ` ${n} event${n === 1 ? '' : 's'}`;
+                        },
+                        afterBody: (items) => {
+                          const i = items[0]?.dataIndex ?? 0;
+                          return ['', severityTooltipHints[i] ?? ''];
+                        },
+                      },
                     },
                   },
                   scales: {
@@ -443,11 +499,13 @@ export default function ThreatCharts() {
               Regions in the feed
             </h3>
             <p className="mb-3 text-[11px] leading-relaxed text-zinc-500">
-              When an event includes a country code, we group them here (demo / simulated mix).
+              Country codes when the event carries them. Treat as a postcard from the data generator,
+              not ground truth. Clusters can appear because mocks reuse a handful of regions.
             </p>
             {countries.length === 0 ? (
               <p className="py-8 text-center text-sm text-zinc-500">
-                No country tags yet; they appear when the stream includes them.
+                No geo tags in the buffer yet. When the API attaches a country, this bar race lights
+                up.
               </p>
             ) : (
               <div className="relative min-h-[220px]">
@@ -460,9 +518,17 @@ export default function ThreatCharts() {
                     plugins: {
                       legend: { display: false },
                       tooltip: {
-                        backgroundColor: 'rgba(24,24,27,0.95)',
-                        titleColor: '#fafafa',
-                        bodyColor: '#d4d4d8',
+                        ...chartTooltipBase,
+                        callbacks: {
+                          label: (ctx) => {
+                            const n = ctx.parsed.x;
+                            return ` ${n} event${n === 1 ? '' : 's'} tagged this region`;
+                          },
+                          afterBody: () => [
+                            '',
+                            'Correlate with the map dots: same story, different projection.',
+                          ],
+                        },
                       },
                     },
                     scales: {

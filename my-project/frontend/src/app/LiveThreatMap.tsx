@@ -43,20 +43,20 @@ export default function LiveThreatMap() {
       title="Live map"
       description={
         <p>
-          Approximate coordinates from each streamed event (demo data, not a live operations map).
-          Dots update as new events arrive; pause the feed to freeze them with the rest of the
-          dashboard.
+          Every dot is the lat/long bundled with an event. Use it to see spatial clustering at a
+          glance. This is a teaching skin on streamed samples, not an authoritative SOC wallboard.
+          Pause the live feed and the map holds still with everything else.
         </p>
       }
       meta={
         <p className="font-mono text-xs text-zinc-500">
-          Showing {markers.length} point{markers.length === 1 ? '' : 's'}
+          Plotting {markers.length} marker{markers.length === 1 ? '' : 's'}
           {markers.length < validTotal
-            ? ` (newest ${markers.length} of ${validTotal} with valid coordinates)`
+            ? ` (keeping the freshest ${markers.length} of ${validTotal} valid fixes)`
             : validTotal === 0
-              ? '; waiting for events with coordinates'
+              ? '; hang tight for coordinates in the stream'
               : ''}
-          .
+          . Click a dot for the full row snapshot.
         </p>
       }
       bodyClassName="mt-5"
@@ -93,21 +93,39 @@ export default function LiveThreatMap() {
                     }}
                   >
                     <Popup className="[&_.leaflet-popup-content-wrapper]:rounded-lg [&_.leaflet-popup-content-wrapper]:border [&_.leaflet-popup-content-wrapper]:border-zinc-700 [&_.leaflet-popup-content-wrapper]:bg-zinc-900 [&_.leaflet-popup-content]:text-zinc-200 [&_.leaflet-popup-tip]:bg-zinc-900">
-                      <div className="min-w-[200px] font-sans text-xs">
-                        <p className="font-semibold text-zinc-100">{t.type}</p>
+                      <div className="min-w-[220px] max-w-[280px] font-sans text-xs">
+                        <p className="font-semibold leading-snug text-zinc-100">{t.type}</p>
+                        <p className="mt-1.5 text-zinc-400">
+                          <span className="text-zinc-500">Severity:</span>{' '}
+                          <span className="text-zinc-200">{t.severity}</span>
+                        </p>
                         <p className="mt-1 text-zinc-400">
-                          <span className="text-zinc-500">Severity:</span> {t.severity}
+                          <span className="text-zinc-500">Source:</span>{' '}
+                          <span className="font-mono text-[11px] text-cyan-300/90">{t.source_ip}</span>
+                        </p>
+                        <p className="mt-1 text-zinc-400">
+                          <span className="text-zinc-500">Confidence:</span>{' '}
+                          {(t.confidence * 100).toFixed(0)}%
                         </p>
                         {t.country && (
-                          <p className="text-zinc-400">
+                          <p className="mt-1 text-zinc-400">
                             <span className="text-zinc-500">Region:</span> {t.country}
                           </p>
                         )}
-                        <p className="mt-1 font-mono text-[10px] text-zinc-500">
+                        {t.details ? (
+                          <p className="mt-2 border-t border-white/10 pt-2 text-[11px] italic leading-snug text-zinc-500">
+                            {t.details}
+                          </p>
+                        ) : null}
+                        <p className="mt-2 font-mono text-[10px] text-zinc-500">
                           {t.location.latitude.toFixed(3)}, {t.location.longitude.toFixed(3)}
                         </p>
                         <p className="mt-1 text-[10px] text-zinc-500">
                           {new Date(t.timestamp).toLocaleString()}
+                        </p>
+                        <p className="mt-2 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-zinc-600">
+                          Tip: cross-check this dot against the severity color. Bright markers are the
+                          ones that would wake up an on-call engineer in a real pipeline.
                         </p>
                       </div>
                     </Popup>
@@ -119,13 +137,22 @@ export default function LiveThreatMap() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[10px] uppercase tracking-wider text-zinc-600">
-          <span className="flex items-center gap-1.5">
+          <span
+            className="flex cursor-help items-center gap-1.5"
+            title="Calm traffic: good baseline noise for demos"
+          >
             <span className="h-2 w-2 rounded-full bg-emerald-400/90 ring-1 ring-emerald-300/50" /> Low
           </span>
-          <span className="flex items-center gap-1.5">
+          <span
+            className="flex cursor-help items-center gap-1.5"
+            title="Noticeable but not yet screaming"
+          >
             <span className="h-2 w-2 rounded-full bg-amber-400/90 ring-1 ring-amber-300/50" /> Medium
           </span>
-          <span className="flex items-center gap-1.5">
+          <span
+            className="flex cursor-help items-center gap-1.5"
+            title="Treat as urgent in a real SOC; here it is just brighter ink"
+          >
             <span className="h-2 w-2 rounded-full bg-rose-400/90 ring-1 ring-rose-300/50" /> High / critical
           </span>
         </div>

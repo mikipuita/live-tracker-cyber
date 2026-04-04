@@ -37,9 +37,25 @@ export default function Home() {
 
         <footer className="mt-14 border-t border-white/[0.06] pt-8 text-center">
           <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">
-            <a href="https://www.linkedin.com/in/miguel-sanchez-morales/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Miguel Sanchez</a>{' '}
-            <span className="text-zinc-700">×</span>{' '}
-            <a href="https://rishi-alva.github.io/RishiAlva.github.io/" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-400 transition-colors">Rishi Alva</a>
+            <a
+              href="https://miggysanchez.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded px-1.5 py-1 text-zinc-500 transition-colors duration-200 hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 active:bg-cyan-400/20 active:text-cyan-200"
+            >
+              Miguel Sanchez
+            </a>
+            <span className="mx-1 text-zinc-700 select-none" aria-hidden="true">
+              ×
+            </span>
+            <a
+              href="https://rishi-alva.github.io/RishiAlva.github.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded px-1.5 py-1 text-zinc-500 transition-colors duration-200 hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 active:bg-violet-400/20 active:text-violet-200"
+            >
+              Rishi Alva
+            </a>
           </p>
         </footer>
       </div>
