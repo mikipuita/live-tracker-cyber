@@ -137,7 +137,7 @@ export default function LiveThreats() {
             threats.map((threat, idx) => (
               <li
                 key={`${threat.timestamp}-${idx}`}
-                className={`rounded-xl border border-white/[0.08] border-l-[3px] bg-zinc-950/70 py-3 pl-4 pr-3 backdrop-blur-sm transition-all duration-200 hover:border-cyan-500/25 hover:bg-zinc-900/80 ${severityLeftAccent(threat.severity)}`}
+                className={`threat-item rounded-xl border border-white/[0.08] border-l-[3px] bg-zinc-950/70 py-3 pl-4 pr-3 backdrop-blur-sm transition-all duration-200 hover:border-cyan-500/25 hover:bg-zinc-900/80 ${severityLeftAccent(threat.severity)}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">

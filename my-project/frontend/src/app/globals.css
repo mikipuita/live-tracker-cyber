@@ -7,6 +7,13 @@
 	--border: rgba(255, 255, 255, 0.08);
 	--accent: #22d3ee;
 	--accent-dim: rgba(34, 211, 238, 0.12);
+
+	/* nav.css required variables */
+	--bg-card:        #18181b;
+	--text-primary:   #f4f4f5;
+	--text-secondary: #a1a1aa;
+	--text-muted:     #52525b;
+	--font-sans:      var(--font-geist-sans), system-ui, sans-serif;
 }
 
 @theme inline {
@@ -26,7 +33,100 @@ body {
 	min-height: 100vh;
 }
 
-/* Thin scrollbar for threat list */
+/* ─── Light mode ─────────────────────────────────────────────────────── */
+
+html.light {
+	--bg-card:        #ffffff;
+	--text-primary:   #1d1d1f;
+	--text-secondary: #6e6e73;
+	--text-muted:     #a1a1a6;
+	--border:         rgba(0, 0, 0, 0.1);
+}
+
+html.light body {
+	background: #f5f5f7;
+	background-image:
+		radial-gradient(ellipse 120% 80% at 50% -40%, rgba(8, 145, 178, 0.05), transparent 50%),
+		radial-gradient(ellipse 80% 50% at 100% 50%, rgba(59, 130, 246, 0.03), transparent 45%);
+	color: #1d1d1f;
+}
+
+/* Page header */
+html.light header { border-color: rgba(0, 0, 0, 0.08) !important; }
+html.light header h1 { color: #1d1d1f !important; }
+html.light header p  { color: #6e6e73 !important; }
+
+/* InsightPanelShell */
+html.light .insight-panel {
+	background-color: rgba(255, 255, 255, 0.95) !important;
+	border-color: rgba(0, 0, 0, 0.09) !important;
+	box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.12) !important;
+}
+html.light .insight-panel h2 {
+	background-image: linear-gradient(135deg, #1d1d1f 0%, #3d3d3f 50%, #6e6e73 100%) !important;
+	-webkit-background-clip: text !important;
+	background-clip: text !important;
+}
+html.light .insight-panel .text-zinc-400 { color: #6e6e73 !important; }
+html.light .insight-panel .text-zinc-500 { color: #6e6e73 !important; }
+html.light .insight-panel .text-zinc-600 { color: #a1a1a6 !important; }
+html.light .insight-panel .text-zinc-100,
+html.light .insight-panel .text-white    { color: #1d1d1f !important; }
+html.light .insight-panel .text-cyan-400\/85   { color: #0891b2 !important; }
+html.light .insight-panel .text-violet-400\/85 { color: #7c3aed !important; }
+html.light .insight-panel .text-emerald-400\/85 { color: #059669 !important; }
+
+/* Threat scroll container */
+html.light .threat-scroll {
+	background: linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.035)) !important;
+	border-color: rgba(0, 0, 0, 0.07) !important;
+}
+
+/* Threat list items */
+html.light .threat-item {
+	background-color: rgba(255, 255, 255, 0.92) !important;
+	border-color: rgba(0, 0, 0, 0.07) !important;
+}
+html.light .threat-item:hover {
+	background-color: #fff !important;
+	border-color: rgba(8, 145, 178, 0.2) !important;
+}
+html.light .threat-item .text-zinc-100 { color: #1d1d1f !important; }
+html.light .threat-item .text-zinc-500 { color: #6e6e73 !important; }
+html.light .threat-item .text-zinc-600 { color: #a1a1a6 !important; }
+html.light .threat-item .text-zinc-700 { color: #d1d1d6 !important; }
+html.light .threat-item .text-cyan-400\/90 { color: #0891b2 !important; }
+html.light .text-cyan-400\/90 { color: #0891b2 !important; }
+
+/* Chart cards */
+html.light .chart-card {
+	background: #fff !important;
+	border-color: rgba(0, 0, 0, 0.08) !important;
+	box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.08) !important;
+}
+html.light .chart-card::before { display: none; }
+html.light .chart-card h3 { color: #1d1d1f !important; }
+html.light .chart-card p  { color: #6e6e73 !important; }
+
+/* Stats cards */
+html.light .stats-card {
+	background: #fff !important;
+}
+html.light .stats-card .text-white,
+html.light .stats-card .text-zinc-100 { color: #1d1d1f !important; }
+html.light .stats-card .text-zinc-500 { color: #6e6e73 !important; }
+
+/* Status indicator text */
+html.light .text-emerald-300 { color: #059669 !important; }
+html.light .text-red-300     { color: #dc2626 !important; }
+html.light .text-amber-200,
+html.light .text-amber-300   { color: #d97706 !important; }
+
+/* Footer */
+html.light footer { border-color: rgba(0, 0, 0, 0.06) !important; }
+html.light footer p { color: #a1a1a6 !important; }
+
+/* ─── Thin scrollbar for threat list ─────────────────────────────────── */
 .threat-scroll::-webkit-scrollbar {
 	width: 6px;
 }
