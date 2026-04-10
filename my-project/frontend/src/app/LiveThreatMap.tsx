@@ -1,11 +1,24 @@
 'use client';
 
-import { useMemo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Popup, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useDashboard } from './DashboardContext';
 import { InsightPanelShell } from './InsightPanelShell';
 import type { Threat } from '../types/threat';
+
+type CountryFeatureProperties = {
+  ISO_A2?: string;
+  iso_a2?: string;
+  ADMIN?: string;
+  admin?: string;
+  NAME?: string;
+  name?: string;
+  [key: string]: unknown;
+};
+
+type CountryFeature = GeoJSON.Feature<GeoJSON.Geometry, CountryFeatureProperties>;
+type CountryFeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, CountryFeatureProperties>;
 
 function validLoc(t: Threat) {
   const { latitude: lat, longitude: lng } = t.location;
@@ -30,11 +43,47 @@ function severityStyle(sev: string) {
 
 export default function LiveThreatMap() {
   const { threats, feedPaused } = useDashboard();
+  const [countries, setCountries] = useState<CountryFeatureCollection | null>(null);
 
   const { markers, validTotal } = useMemo(() => {
     const valid = threats.filter(validLoc);
     return { markers: valid.slice(0, 280), validTotal: valid.length };
   }, [threats]);
+
+  const countryToSeverity = useMemo(() => {
+    // Newest threat wins per country.
+    const map = new Map<string, string>();
+    for (const t of threats) {
+      const code = t.country?.trim();
+      if (!code) continue;
+      if (code.toLowerCase() === 'unknown') continue;
+      const iso2 = code.toUpperCase();
+      if (iso2.length !== 2) continue;
+      if (!map.has(iso2)) map.set(iso2, t.severity);
+    }
+    return map;
+  }, [threats]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCountries() {
+      try {
+        // Use a relative asset so it works fully offline once present.
+        const res = await fetch('/countries.geojson');
+        if (!res.ok) throw new Error(`countries fetch failed: ${res.status}`);
+        const json = (await res.json()) as CountryFeatureCollection;
+        if (!cancelled) setCountries(json);
+      } catch {
+        if (!cancelled) setCountries(null);
+      }
+    }
+
+    if (!countries) loadCountries();
+    return () => {
+      cancelled = true;
+    };
+  }, [countries]);
 
   return (
     <InsightPanelShell
@@ -78,6 +127,27 @@ export default function LiveThreatMap() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
               />
+              {countries && countryToSeverity.size > 0 ? (
+                <GeoJSON
+                  key={`countries-${countryToSeverity.size}-${threats[0]?.timestamp ?? 'empty'}`}
+                  data={countries as unknown as GeoJSON.GeoJsonObject}
+                  interactive={false}
+                  style={(feature) => {
+                    const props = (feature as CountryFeature | undefined)?.properties;
+                    const iso2 = (props?.ISO_A2 ?? props?.iso_a2 ?? '').toString().toUpperCase();
+                    const severity = iso2 ? countryToSeverity.get(iso2) : undefined;
+                    const isMatch = Boolean(severity);
+                    const { fill, stroke } = severityStyle(severity ?? 'unknown');
+                    return {
+                      color: isMatch ? stroke : 'transparent',
+                      opacity: isMatch ? 0.95 : 0,
+                      weight: isMatch ? 3 : 0,
+                      fillColor: isMatch ? fill : 'transparent',
+                      fillOpacity: isMatch ? 0.42 : 0,
+                    };
+                  }}
+                />
+              ) : null}
               {markers.map((t, i) => {
                 const { fill, stroke } = severityStyle(t.severity);
                 return (
@@ -122,10 +192,6 @@ export default function LiveThreatMap() {
                         </p>
                         <p className="mt-1 text-[10px] text-zinc-500">
                           {new Date(t.timestamp).toLocaleString()}
-                        </p>
-                        <p className="mt-2 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-zinc-600">
-                          Tip: cross-check this dot against the severity color. Bright markers are the
-                          ones that would wake up an on-call engineer in a real pipeline.
                         </p>
                       </div>
                     </Popup>

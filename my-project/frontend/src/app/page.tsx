@@ -38,7 +38,7 @@ export default function Home() {
         <footer className="mt-14 border-t border-white/[0.06] pt-8 text-center">
           <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-zinc-600">
             <a
-              href="https://miggysanchez.com/"
+              href="https://github.com/mikipuita/live-tracker-cyber"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block rounded px-1.5 py-1 text-zinc-500 transition-colors duration-200 hover:text-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 active:bg-cyan-400/20 active:text-cyan-200"

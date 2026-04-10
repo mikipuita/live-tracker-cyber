@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeToggle } from "./ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,16 +37,6 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}>
         <nav className="site-nav">
-          {/* eslint-disable @next/next/no-html-link-for-pages */}
-          <a className="nav-brand" href="/">miggy</a>
-          <div className="nav-links">
-            <a className="nav-link" href="/workout/">Workout</a>
-            <a className="nav-link" href="/portfolio/">Portfolio</a>
-            <span className="nav-link nav-link-active">Threats</span>
-          </div>
-          <div className="nav-end">
-            <ThemeToggle />
-          </div>
         </nav>
         {children}
       </body>
