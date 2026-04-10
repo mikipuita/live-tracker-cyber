@@ -17,7 +17,7 @@ export default function Home() {
             Threat dashboard
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-400">
-            Real CVEs from NVD and flagged IPs from AbuseIPDB — correlated, categorized, and
+            Real CVEs from NVD and flagged IPs from AbuseIPDB: correlated, categorized, and
             streamed live. Connect the feed and watch attack patterns surface in real time.
           </p>
         </header>

@@ -307,7 +307,7 @@ def generate_real_threat():
         category = map_cve_to_threat_type(cve['description'])
         return {
             "timestamp": datetime.now().isoformat(),
-            "type": category,
+            "type": f"{category} ({cve['id']})",
             "source_ip": ip_data["ipAddress"],
             "severity": severity,
             "confidence": round(score / 10 if score else 0.7, 2),

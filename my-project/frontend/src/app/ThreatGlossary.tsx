@@ -222,8 +222,8 @@ function extractBufferData(threats: Threat[], matchTypes: string[], matchDetails
 
   const cveSet = new Set<string>();
   for (const t of matched) {
-    if (t.details) {
-      const m = t.details.match(/CVE-\d{4}-\d+/i);
+    for (const src of [t.type, t.details ?? '']) {
+      const m = src.match(/CVE-\d{4}-\d+/i);
       if (m) cveSet.add(m[0].toUpperCase());
     }
   }
