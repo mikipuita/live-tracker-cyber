@@ -16,11 +16,20 @@ function IconKey({ className }: { className?: string }) {
   );
 }
 
-function IconRefresh({ className }: { className?: string }) {
+function IconArrows({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
-      <path d="M21 12a9 9 0 0 1-9 9 4.5 4.5 0 0 1-4.5-4.5V15M3 12a9 9 0 0 1 9-9 4.5 4.5 0 0 1 4.5 4.5V9" strokeLinecap="round" />
-      <path d="M8 15H3v5M21 9v5h-5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12v-2a8 8 0 0 1 14.93-4M20 12v2a8 8 0 0 1-14.93 4" strokeLinecap="round" />
+      <path d="m18 4 2 2-2 2M6 18l-2-2 2-2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconPerson({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <circle cx="12" cy="7" r="3.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.5 21c0-3.5 2.9-6 6.5-6s6.5 2.5 6.5 6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -40,12 +49,13 @@ const PRIORITIES = [
     accent: 'from-violet-400/20 to-fuchsia-500/10',
     ring: 'ring-violet-500/25',
   },
+
   {
-    title: 'Stay updated',
-    text: 'Turn on auto-updates for OS and browsers. Patches close the holes malware and scams exploit.',
-    Icon: IconRefresh,
-    accent: 'from-amber-400/15 to-orange-500/10',
-    ring: 'ring-amber-500/25',
+    title: 'Human firewall',
+    text: 'The most exploited vulnerability is human. Train your team or family to spot phishing, social engineering, and suspicious links before attackers do.',
+    Icon: IconPerson,
+    accent: 'from-sky-400/15 to-blue-500/10',
+    ring: 'ring-sky-500/25',
   },
 ] as const;
 

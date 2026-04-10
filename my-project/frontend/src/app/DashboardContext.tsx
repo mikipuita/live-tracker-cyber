@@ -24,7 +24,7 @@ type DashboardContextValue = {
 const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
-  const [feedPaused, setFeedPaused] = useState(false);
+  const [feedPaused, setFeedPaused] = useState(true);
   const [threats, setThreats] = useState<Threat[]>([]);
   const [wsOpen, setWsOpen] = useState(false);
 

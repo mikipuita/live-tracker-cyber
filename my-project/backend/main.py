@@ -163,8 +163,8 @@ def map_category_to_threat_type(categories):
     """Map AbuseIPDB categories to threat types"""
     # AbuseIPDB categories reference: https://www.abuseipdb.com/categories
     if not categories:
-        return "Suspicious Activity"
-    
+        return "Flagged IP (Uncategorized)"
+
     # Check for specific threat patterns (order matters - most severe first)
     if 4 in categories:  # DDoS Attack
         return "DDoS Attack"
@@ -186,10 +186,10 @@ def map_category_to_threat_type(categories):
         return "DNS Attack"
     elif 23 in categories:  # IoT Targeted
         return "IoT Attack"
-    elif 22 in categories:  # SSH Abuse
+    elif 22 in categories:  # SSH Attack
         return "SSH Attack"
-    elif 9 in categories:  # Open Proxy/Tor
-        return "Proxy/Tor Node"
+    elif 9 in categories or 13 in categories:  # Open Proxy/Tor or VPN IP
+        return "Proxy/Tor/VPN Node"
     elif 10 in categories or 12 in categories:  # Web/Blog Spam
         return "Web Spam"
     elif 19 in categories:  # Bad Web Bot
@@ -201,7 +201,39 @@ def map_category_to_threat_type(categories):
     elif 6 in categories:  # Ping of Death
         return "Ping of Death"
     else:
-        return "Suspicious Activity"
+        return f"Network Anomaly (cat {sorted(categories)[0]})"
+
+
+def map_cve_to_threat_type(description: str) -> str:
+    """Map a CVE description to a known vulnerability category."""
+    d = description.lower()
+    if any(k in d for k in ["sql injection", "sqli", "sql query"]):
+        return "SQL Injection"
+    if any(k in d for k in ["cross-site scripting", "xss", "cross site scripting"]):
+        return "Cross-Site Scripting (XSS)"
+    if any(k in d for k in ["remote code execution", "rce", "arbitrary code"]):
+        return "Remote Code Execution"
+    if any(k in d for k in ["denial of service", "dos attack", "resource exhaustion"]):
+        return "Denial of Service"
+    if any(k in d for k in ["buffer overflow", "stack overflow", "heap overflow", "memory corruption", "out-of-bounds write"]):
+        return "Memory Corruption"
+    if any(k in d for k in ["privilege escalation", "local privilege", "elevat"]):
+        return "Privilege Escalation"
+    if any(k in d for k in ["authentication bypass", "improper authentication", "missing authentication"]):
+        return "Authentication Bypass"
+    if any(k in d for k in ["path traversal", "directory traversal", "../"]):
+        return "Path Traversal"
+    if any(k in d for k in ["command injection", "os command", "shell injection"]):
+        return "Command Injection"
+    if any(k in d for k in ["information disclosure", "sensitive data", "information exposure", "credentials exposed"]):
+        return "Information Disclosure"
+    if any(k in d for k in ["csrf", "cross-site request forgery"]):
+        return "Cross-Site Request Forgery"
+    if any(k in d for k in ["use after free", "use-after-free", "uaf"]):
+        return "Use-After-Free"
+    if any(k in d for k in ["deserialization", "deserializ"]):
+        return "Insecure Deserialization"
+    return "CVE Vulnerability"
 
 #Real Threat Generator
 def generate_real_threat():
@@ -227,13 +259,13 @@ def generate_real_threat():
         cve = random.choice(cve_cache)
         return {
             "timestamp": datetime.now().isoformat(),
-            "type": f"CVE Exploit: {cve['id']}",
+            "type": map_cve_to_threat_type(cve['description']),
             "source_ip": ip_data["ipAddress"],
             "severity": cve["severity"],
             "confidence": round(cve['score'] / 10 if cve['score'] else 0.7, 2),
             "location": location,
             "country": ip_data['country'],
-            "details": cve['description']
+            "details": f"{cve['id']}: {cve['description']}"
         }
     elif ip_data:
         # Real malicious IP threat with behavioral data
