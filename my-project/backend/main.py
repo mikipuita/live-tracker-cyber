@@ -175,7 +175,7 @@ CATEGORY_CVE_KEYWORDS = {
     23: ["iot", "firmware", "embedded", "router"],                    # IoT
 }
 
-def find_cve_for_ip(categories: list) -> dict | None:
+def find_cve_for_ip(categories: list):
     """Find a CVE relevant to an IP's abuse categories. Falls back to any CVE."""
     if not cve_cache:
         return None
