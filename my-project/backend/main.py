@@ -159,6 +159,38 @@ async def fetch_malicious_ips():
     except Exception as e:
         print(f"Error fetching malicious IPs: {e}")
 
+# Maps AbuseIPDB categories to CVE description keywords for intelligent pairing
+CATEGORY_CVE_KEYWORDS = {
+    4:  ["denial of service", "dos", "resource exhaustion"],          # DDoS
+    5:  ["ftp", "authentication", "brute"],                           # FTP Brute-Force
+    14: ["scan", "discovery", "enumeration", "reconnaissance"],       # Port Scan
+    15: ["remote code", "rce", "arbitrary code", "execution"],        # Hacking
+    16: ["sql injection", "sqli", "sql query"],                       # SQL Injection
+    17: ["spoof", "forged", "impersonat"],                            # Spoofing
+    18: ["brute force", "authentication", "password", "login"],       # Brute-Force
+    19: ["crawler", "bot", "scraping", "automated"],                  # Bad Web Bot
+    20: ["malware", "backdoor", "trojan", "rootkit", "exploit"],      # Exploited Host
+    21: ["web", "xss", "cross-site", "injection", "csrf", "http"],   # Web App Attack
+    22: ["ssh", "remote access", "openssh"],                          # SSH
+    23: ["iot", "firmware", "embedded", "router"],                    # IoT
+}
+
+def find_cve_for_ip(categories: list) -> dict | None:
+    """Find a CVE relevant to an IP's abuse categories. Falls back to any CVE."""
+    if not cve_cache:
+        return None
+    keywords = []
+    for cat in (categories or []):
+        keywords.extend(CATEGORY_CVE_KEYWORDS.get(cat, []))
+    if keywords:
+        matches = [
+            cve for cve in cve_cache
+            if any(kw in cve['description'].lower() for kw in keywords)
+        ]
+        if matches:
+            return random.choice(matches)
+    return random.choice(cve_cache)
+
 def map_category_to_threat_type(categories):
     """Map AbuseIPDB categories to threat types"""
     # AbuseIPDB categories reference: https://www.abuseipdb.com/categories
@@ -257,25 +289,63 @@ def generate_real_threat():
         }
     if threat_source == "cve" and cve_cache and ip_data:
         cve = random.choice(cve_cache)
+        score = cve['score']
+        raw_severity = (cve['severity'] or '').strip().capitalize()
+        if raw_severity in ('', 'Unknown', 'None'):
+            if score is None:
+                severity = "Medium"
+            elif score >= 9.0:
+                severity = "Critical"
+            elif score >= 7.0:
+                severity = "High"
+            elif score >= 4.0:
+                severity = "Medium"
+            else:
+                severity = "Low"
+        else:
+            severity = raw_severity
+        category = map_cve_to_threat_type(cve['description'])
         return {
             "timestamp": datetime.now().isoformat(),
-            "type": map_cve_to_threat_type(cve['description']),
+            "type": f"{category} ({cve['id']})",
             "source_ip": ip_data["ipAddress"],
-            "severity": cve["severity"],
-            "confidence": round(cve['score'] / 10 if cve['score'] else 0.7, 2),
+            "severity": severity,
+            "confidence": round(score / 10 if score else 0.7, 2),
             "location": location,
             "country": ip_data['country'],
-            "details": f"{cve['id']}: {cve['description']}"
+            "details": cve['description']
         }
     elif ip_data:
-        # Real malicious IP threat with behavioral data
         threat_type = map_category_to_threat_type(ip_data['categories'])
-        
+        severity = "High" if ip_data['confidence'] > 90 else "Medium" if ip_data['confidence'] > 75 else "Low"
+
+        # For uncategorized IPs, enrich with a matching CVE for context
+        if not ip_data['categories'] and cve_cache:
+            cve = find_cve_for_ip([])
+            if cve:
+                score = cve['score']
+                cve_severity = (cve['severity'] or '').strip().capitalize()
+                if cve_severity not in ('', 'Unknown', 'None'):
+                    severity = cve_severity
+                elif score is not None:
+                    severity = "Critical" if score >= 9.0 else "High" if score >= 7.0 else "Medium" if score >= 4.0 else "Low"
+                category = map_cve_to_threat_type(cve['description'])
+                return {
+                    "timestamp": datetime.now().isoformat(),
+                    "type": f"{category} ({cve['id']})",
+                    "source_ip": ip_data['ipAddress'],
+                    "severity": severity,
+                    "confidence": round(ip_data['confidence'] / 100, 2),
+                    "location": location,
+                    "country": ip_data['country'],
+                    "details": cve['description']
+                }
+
         return {
             "timestamp": datetime.now().isoformat(),
             "type": threat_type,
             "source_ip": ip_data['ipAddress'],
-            "severity": "High" if ip_data['confidence'] > 90 else "Medium" if ip_data['confidence'] > 75 else "Low",
+            "severity": severity,
             "confidence": round(ip_data['confidence'] / 100, 2),
             "location": location,
             "country": ip_data['country']

@@ -9,8 +9,11 @@ A full-stack threat intelligence dashboard that streams live CVE and malicious I
 ## What it does
 
 - Fetches real CVEs from the [NVD](https://nvd.nist.gov/) and malicious IPs from [AbuseIPDB](https://www.abuseipdb.com/)
+- Correlates the two data sources intelligently: an IP flagged for SQL Injection gets paired with a relevant SQLi CVE, an IP flagged for brute force gets an auth CVE, and so on
+- Uncategorized IPs (flagged but no attack type reported) are automatically enriched with a matching CVE so every event in the feed has meaningful context
 - Streams threat events every 2-5 seconds over WebSocket
-- Displays a live feed with severity badges, country tags, and IP attribution
+- Displays a live feed with severity badges, country tags, IP attribution, and CVE details
+- Derives severity from CVSS scores when the NVD entry lacks an explicit rating
 - Visualizes the stream with real-time charts (severity breakdown, threat types, activity timeline, top regions)
 - Falls back to mock data if API keys are not configured
 
