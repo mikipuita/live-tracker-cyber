@@ -9,7 +9,7 @@ A full-stack threat intelligence dashboard that streams live CVE and malicious I
 ## What it does
 
 - Fetches real CVEs from the [NVD](https://nvd.nist.gov/) and malicious IPs from [AbuseIPDB](https://www.abuseipdb.com/)
-- Streams threat events every 2–5 seconds over WebSocket
+- Streams threat events every 2-5 seconds over WebSocket
 - Displays a live feed with severity badges, country tags, and IP attribution
 - Visualizes the stream with real-time charts (severity breakdown, threat types, activity timeline, top regions)
 - Falls back to mock data if API keys are not configured
@@ -91,12 +91,12 @@ Open `http://127.0.0.1:3000`.
 
 ## Environment variables
 
-Add to `my-project/backend/.env` (both are optional):
+Copy `my-project/backend/.env.example` to `my-project/backend/.env` and fill in the values. Both are optional — the app falls back to mock/empty data without them.
 
 | Variable | Notes |
 |----------|-------|
 | `ABUSEIPDB_API_KEY` | Get at [abuseipdb.com/register](https://www.abuseipdb.com/register). Without it, malicious IP data is empty and the feed uses CVE + fallback data. |
-| `NVD_API_KEY` | Get at [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key). Increases NVD rate limits. |
+| `NVD_API_KEY` | Get at [nvd.nist.gov/developers](https://nvd.nist.gov/developers/request-an-api-key). Increases NVD rate limits. Without it, NVD requests are rate-limited to ~5/30s. |
 
 ---
 
@@ -111,13 +111,25 @@ Add to `my-project/backend/.env` (both are optional):
 
 ---
 
-## Deployment
+## Self-hosting
 
-The live version runs at [miggysanchez.com/threat-dashboard](https://miggysanchez.com/threat-dashboard).
+The frontend is a standard Next.js app and the backend is a FastAPI app — both can be deployed anywhere.
 
-- Frontend: Next.js static export served by nginx
-- Backend: FastAPI/uvicorn managed by systemd (`mazena-threats.service`)
-- WebSocket proxied through nginx at `wss://miggysanchez.com/ws/threats`
+**Frontend (static export):**
+```bash
+cd my-project/frontend
+npm run build   # outputs to /out
+```
+Serve the `/out` directory from any static host (nginx, Vercel, Netlify, etc.).
+
+**Backend:**
+```bash
+cd my-project/backend
+source venv/bin/activate
+uvicorn main:app --host 0.0.0.0 --port 9000
+```
+
+If your frontend is on a different origin, update the WebSocket URL in `frontend/src/lib/wsUrl.ts` to match your backend host.
 
 ---
 
